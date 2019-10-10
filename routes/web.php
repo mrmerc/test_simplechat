@@ -12,7 +12,11 @@
 */
 
 Route::get('/', function () {
-    return view('chat');
+	if (Auth::check()) {
+		return view('chat');
+	} else {
+		return view('auth.login');
+	}
 });
 
 Auth::routes();

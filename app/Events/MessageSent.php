@@ -7,14 +7,15 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent
+class MessageSent implements ShouldBroadcastNow
 {
 	use Dispatchable, InteractsWithSockets, SerializesModels;
 	
-	private $data;
+	public $data;
 
     /**
      * Create a new event instance.
@@ -23,7 +24,7 @@ class MessageSent
      */
     public function __construct($data)
     {
-        $this->data = json_decode($data, true);
+        $this->data = $data;
     }
 
     /**

@@ -1935,20 +1935,89 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
+  props: {
+    user: {
+      required: true,
+      type: Object
+    }
+  },
   data: function data() {
     return {
       messages: [],
       my_message: ''
     };
   },
-  mounted: function mounted() {},
-  computed: {},
-  methods: {}
+  mounted: function mounted() {
+    var _this = this;
+
+    this.getHistory();
+    this.channel.joining(function (user) {
+      _this.messages.unshift({
+        text: 'Подключился',
+        date: Date.now(),
+        name: user.name,
+        from: user.id
+      });
+    }).listen('MessageSent', function (_ref) {
+      var data = _ref.data;
+
+      _this.messages.unshift(JSON.parse(data));
+    });
+  },
+  computed: {
+    channel: function channel() {
+      return window.Echo.join('chat');
+    }
+  },
+  methods: {
+    sendMessage: function sendMessage() {
+      var _this2 = this;
+
+      if (!this.my_message.length) return;
+      var msg = {
+        text: this.my_message,
+        date: Date.now(),
+        name: this.user.name,
+        from: this.user.id
+      };
+      axios.post('api/message', JSON.stringify(msg), {
+        params: {
+          api_token: this.user.api_token
+        }
+      }).then(function () {
+        _this2.messages.unshift(msg);
+
+        _this2.my_message = '';
+      })["catch"](function (_ref2) {
+        var response = _ref2.response;
+        return console.log(response);
+      });
+    },
+    getHistory: function getHistory() {
+      var _this3 = this;
+
+      axios.get('api/message/history', {
+        params: {
+          api_token: this.user.api_token
+        }
+      }).then(function (_ref3) {
+        var data = _ref3.data;
+        _this3.messages = data.history;
+      })["catch"](function (_ref4) {
+        var response = _ref4.response;
+        return console.log(response);
+      });
+    },
+    getDateString: function getDateString(timestamp) {
+      var date = new Date(parseInt(timestamp));
+      var day = date.getDate() < 10 ? "0".concat(date.getDate()) : date.getDate();
+      var month = date.getMonth() + 1 < 10 ? "0".concat(date.getMonth() + 1) : date.getMonth() + 1;
+      var hours = date.getHours() < 10 ? "0".concat(date.getHours()) : date.getHours();
+      var minutes = date.getMinutes() < 10 ? "0".concat(date.getMinutes()) : date.getMinutes();
+      return "".concat(day, ".").concat(month, ".").concat(date.getFullYear(), " ").concat(hours, ":").concat(minutes);
+    }
+  }
 });
 
 /***/ }),
@@ -49476,69 +49545,78 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c(
-      "div",
-      { staticClass: "container border p-2", attrs: { id: "chat-container" } },
-      [
-        _c("div", { attrs: { id: "feed" } }, [
-          _c("ul", { staticClass: "list-group" }, [
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:40 Вася: Привет")
-            ]),
+  return _c(
+    "div",
+    { staticClass: "container border p-2", attrs: { id: "chat-container" } },
+    [
+      _c("div", { attrs: { id: "feed" } }, [
+        _c(
+          "ul",
+          { staticClass: "list-group" },
+          [
+            _vm._l(_vm.messages, function(message) {
+              return _c(
+                "li",
+                { key: message.id, staticClass: "list-group-item" },
+                [
+                  _vm._v(
+                    "\n\t\t\t\t" +
+                      _vm._s(_vm.getDateString(message.date)) +
+                      " " +
+                      _vm._s(message.name) +
+                      ": " +
+                      _vm._s(message.text) +
+                      "\n\t\t\t"
+                  )
+                ]
+              )
+            }),
             _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "list-group-item" }, [
-              _vm._v("12:41 Петя: Приветик")
-            ])
-          ])
-        ]),
+            !_vm.messages.length
+              ? _c("p", [_vm._v("Сообщений нет")])
+              : _c("p", [_vm._v("Начало истории")])
+          ],
+          2
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { attrs: { id: "composer" } }, [
+        _c("textarea", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.my_message,
+              expression: "my_message"
+            }
+          ],
+          attrs: { placeholder: "Сообщение", rows: "1" },
+          domProps: { value: _vm.my_message },
+          on: {
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.my_message = $event.target.value
+            }
+          }
+        }),
         _vm._v(" "),
-        _c("div", { attrs: { id: "composer" } }, [
-          _c("textarea", { attrs: { placeholder: "Сообщение", rows: "1" } }),
-          _vm._v(" "),
-          _c("input", {
-            staticClass: "btn btn-success m-1",
-            attrs: { type: "button", value: "Отправить" }
-          })
-        ])
-      ]
-    )
-  }
-]
+        _c("input", {
+          staticClass: "btn btn-success m-1",
+          attrs: { type: "button", value: "Отправить" },
+          on: {
+            click: function($event) {
+              $event.preventDefault()
+              return _vm.sendMessage($event)
+            }
+          }
+        })
+      ])
+    ]
+  )
+}
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -61839,13 +61917,10 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 
 window.io = __webpack_require__(/*! socket.io-client */ "./node_modules/socket.io-client/lib/index.js");
-
-if (typeof io !== 'undefined') {
-  window.Echo = new laravel_echo__WEBPACK_IMPORTED_MODULE_0__["default"]({
-    broadcaster: 'socket.io',
-    host: window.location.hostname + ':6001'
-  });
-}
+window.Echo = new laravel_echo__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  broadcaster: 'socket.io',
+  host: window.location.hostname + ':6001'
+});
 
 /***/ }),
 

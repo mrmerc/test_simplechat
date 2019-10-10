@@ -16,3 +16,10 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::middleware(['auth:api', 'throttle:60,10'])->group(function () {
+
+	Route::post('message', 'MessageController@sendMessage');
+
+	Route::get('message/history', 'MessageController@getMessageHistory');
+});
